@@ -121,6 +121,7 @@
       opacity: 0;
       transform: scale(0.92);
       transition: opacity 0.5s ease, transform 0.5s ease;
+      position: relative;
     }
 
     .mailbox.visible {
@@ -133,6 +134,35 @@
       display: none;
     }
 
+    /* ========== SIDEBAR TOGGLE BUTTON (mobile) ========== */
+    .sidebar-toggle {
+      display: none;
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      z-index: 50;
+      width: 36px;
+      height: 36px;
+      background: rgba(30, 32, 48, 0.9);
+      border: 1px solid rgba(200, 180, 120, 0.5);
+      border-radius: 6px;
+      color: #d4c098;
+      font-size: 20px;
+      cursor: pointer;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+
+    /* ========== SIDEBAR OVERLAY (mobile) ========== */
+    .sidebar-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 40;
+    }
+
     /* ========== LEFT SIDEBAR ========== */
     .sidebar {
       width: 280px;
@@ -142,6 +172,8 @@
       display: flex;
       flex-direction: column;
       padding: 20px 0;
+      transition: transform 0.3s ease;
+      z-index: 45;
     }
 
     .sidebar-header {
@@ -507,60 +539,34 @@
       filter: sepia(0.2) saturate(1.4);
     }
 
-    /* ========== RESPONSIVE - TABLET ========== */
+    /* ========== RESPONSIVE - MOBILE (under 800px) ========== */
     @media (max-width: 800px) {
-      .mailbox {
-        flex-direction: column;
-        height: auto;
-        max-height: none;
+      .sidebar-toggle {
+        display: flex;
       }
       
       .sidebar {
-        width: 100%;
-        min-width: unset;
-        flex-direction: row;
-        padding: 10px 0;
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+        transform: translateX(-100%);
+        width: 260px;
+        min-width: 260px;
       }
       
-      .sidebar-header {
-        display: none;
+      .sidebar.open {
+        transform: translateX(0);
       }
       
-      .mail-item {
-        flex-direction: column;
-        text-align: center;
-        min-width: 80px;
-        padding: 8px 10px;
-        border-left: none;
-        border-bottom: 3px solid transparent;
-      }
-      
-      .mail-item.selected {
-        border-left: none;
-        border-bottom: 3px solid #d4b56c;
-      }
-      
-      .mail-icon {
-        margin-right: 0;
-        margin-bottom: 4px;
-        width: 28px;
-        height: 28px;
-        font-size: 14px;
-      }
-      
-      .mail-title {
-        font-size: 11px;
-      }
-      
-      .mail-sender {
-        font-size: 10px;
+      .sidebar-overlay.visible {
+        display: block;
       }
       
       .mail-panel {
         margin: 10px;
         padding: 20px 15px;
+        padding-top: 40px; /* space for the toggle button */
       }
       
       .subject {
@@ -590,7 +596,7 @@
       }
     }
 
-    /* ========== RESPONSIVE - MOBILE ========== */
+    /* ========== RESPONSIVE - SMALL MOBILE ========== */
     @media (max-width: 480px) {
       body {
         padding: 5px;
@@ -607,22 +613,14 @@
       }
       
       .sidebar {
-        padding: 5px 0;
-      }
-      
-      .mail-item {
-        min-width: 65px;
-        padding: 6px 6px;
-      }
-      
-      .mail-title {
-        font-size: 10px;
-        max-width: 60px;
+        width: 240px;
+        min-width: 240px;
       }
       
       .mail-panel {
         margin: 5px;
         padding: 15px 12px;
+        padding-top: 38px;
       }
       
       .subject {
@@ -699,8 +697,14 @@
 
   <!-- ========== MAIN MAILBOX ========== -->
   <div class="mailbox" id="mailboxContainer">
+    <!-- Mobile sidebar toggle button -->
+    <button class="sidebar-toggle" id="sidebarToggle">☰</button>
+    
+    <!-- Sidebar overlay (closes sidebar when tapped) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <!-- Sidebar with interactive tabs -->
-    <div class="sidebar">
+    <div class="sidebar" id="sidebar">
       <div class="sidebar-header">Mail</div>
       
       <div class="mail-item selected" data-index="0">
@@ -804,26 +808,45 @@ Continue your journey boldly, comrade. The path ahead is wide.
     const bgMusic = document.getElementById('bgMusic');
 
     splashScreen.addEventListener('click', function() {
-      // Hide splash screen
       splashScreen.classList.add('hidden');
-      
-      // Show mailbox with animation
       mailboxContainer.classList.add('visible');
-      
-      // Load the first tab's gift icon immediately (FIX)
       switchTab(0);
       
-      // Start background music
       bgMusic.volume = 0.2;
       bgMusic.play().catch(function(err) {
-        // If browser still blocks, music will start on next user interaction
         console.log('Audio play pending:', err);
       });
     });
 
+    // ---------- MOBILE SIDEBAR TOGGLE ----------
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    const sidebar = document.getElementById('sidebar');
+    const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      sidebarOverlay.classList.add('visible');
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      sidebarOverlay.classList.remove('visible');
+    }
+
+    sidebarToggle.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (sidebar.classList.contains('open')) {
+        closeSidebar();
+      } else {
+        openSidebar();
+      }
+    });
+
+    sidebarOverlay.addEventListener('click', closeSidebar);
+
     // ---------- LETTER DATA ----------
     const letters = [
-      { // Tab 1 - The Day the Wind Brought a Friend
+      { // Tab 1
         subject: "The Day the Wind Brought a Friend",
         sender: "Sender: Grandmaster Nour",
         date: "Date: 2026-05-12 00:00",
@@ -854,7 +877,7 @@ Continue your journey boldly, comrade. The path ahead is wide.
           rewardText: "This is one of my first tries to make Varka as pixel art, his face isn't like Varka so much xd so imagine he is Grandmaster Nour (God I wish I looked like that xdd)"
         }
       },
-      { // Tab 2 - Birthday Gateau
+      { // Tab 2
         subject: "The Spinning Aster of Sweet Memories",
         sender: "Sender: Grandmaster Nour",
         date: "Date: 2026-05-12 12:00",
@@ -883,7 +906,7 @@ The Aster turns. The memories spin. And the melody only grows sweeter.
           rewardText: "Please listen to the voice from afar and stick to its plan..."
         }
       },
-      { // Tab 3 - Magical Audio Book
+      { // Tab 3
         subject: "Onwards, to Glory and Friendship",
         sender: "Sender: Grandmaster Nour",
         date: "Date: 2026-05-12 18:00",
@@ -944,11 +967,9 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
     // ---------- FUNCTIONS ----------
     function switchTab(index) {
       currentMailIndex = index;
-      // Update selected class on sidebar
       tabs.forEach(tab => tab.classList.remove('selected'));
       tabs[index].classList.add('selected');
 
-      // Update mail content
       const letter = letters[index];
       subjectEl.textContent = letter.subject;
       senderEl.textContent = letter.sender;
@@ -956,29 +977,27 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
       bodyEl.textContent = letter.body;
       attachmentText.textContent = letter.attachmentText;
 
-      // Update attachment icon for main panel
       if (letter.gift.image) {
-        // Show custom image, hide star
         attachmentIcon.style.backgroundImage = `url('${letter.gift.image}')`;
         attachmentIcon.style.backgroundColor = 'transparent';
         attachmentIcon.classList.remove('star-icon');
       } else {
-        // Show star, hide image
         attachmentIcon.style.backgroundImage = 'none';
-        attachmentIcon.style.backgroundColor = ''; // resets to CSS default
+        attachmentIcon.style.backgroundColor = '';
         attachmentIcon.classList.add('star-icon');
       }
+      
+      // Close mobile sidebar after selecting
+      closeSidebar();
     }
 
     function updateModalForCurrentGift() {
       const gift = letters[currentMailIndex].gift;
 
-      // Set details panel content
       modalItemName.textContent = gift.name;
       modalItemRarity.textContent = gift.rarity;
       modalItemDesc.textContent = gift.desc;
 
-      // Handle image vs star in modal
       if (gift.image) {
         modalItemImage.src = gift.image;
         modalItemImage.style.display = 'block';
@@ -988,10 +1007,8 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
         modalStarFallback.style.display = 'block';
       }
 
-      // Build reward content based on gift type
       let rewardHTML = '';
       
-      // Add reward image if present — clicking opens in new tab
       if (gift.rewardImage) {
         rewardHTML += `<a href="${gift.rewardImage}" target="_blank"><img src="${gift.rewardImage}" alt="Reward" class="reward-image" style="cursor:pointer;"></a>`;
         if (gift.rewardText) {
@@ -1005,13 +1022,11 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
           <audio controls src="${gift.content}"></audio>
         `;
       } else {
-        // Default button
         rewardHTML += `<button class="collect-btn" id="collectBtn">Open in New Tab</button>`;
       }
 
       rewardContent.innerHTML = rewardHTML;
 
-      // Re-bind collect event if button exists
       if (gift.type === "button") {
         const newCollectBtn = document.getElementById('collectBtn');
         if (newCollectBtn) {
@@ -1027,7 +1042,6 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
 
     function openModal() {
       updateModalForCurrentGift();
-      // Always open to Details tab first
       switchModalTab('detail');
       modal.style.display = 'flex';
     }
@@ -1037,7 +1051,6 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
     }
 
     function switchModalTab(tabName) {
-      // Update tab active states
       modalTabs.forEach(tab => {
         if (tab.getAttribute('data-tab') === tabName) {
           tab.classList.add('active');
@@ -1045,7 +1058,6 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
           tab.classList.remove('active');
         }
       });
-      // Show/hide panels
       if (tabName === 'detail') {
         detailPanel.classList.add('active');
         rewardPanel.classList.remove('active');
@@ -1056,7 +1068,6 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
     }
 
     // ---------- EVENT LISTENERS ----------
-    // Sidebar tab clicks
     tabs.forEach(tab => {
       tab.addEventListener('click', function() {
         const index = parseInt(this.getAttribute('data-index'));
@@ -1066,11 +1077,9 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
       });
     });
 
-    // Open modal from attachment icon or claim button
     document.getElementById('giftIcon').addEventListener('click', openModal);
     document.getElementById('claimButton').addEventListener('click', openModal);
 
-    // Modal tab clicks
     modalTabs.forEach(tab => {
       tab.addEventListener('click', function() {
         const tabName = this.getAttribute('data-tab');
@@ -1078,7 +1087,6 @@ Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friend
       });
     });
 
-    // Close modal
     closeModalBtn.addEventListener('click', closeModalFunc);
     window.addEventListener('click', function(event) {
       if (event.target === modal) {
