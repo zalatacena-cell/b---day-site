@@ -15,7 +15,7 @@
       align-items: center;
       min-height: 100vh;
       font-family: 'Georgia', 'Times New Roman', serif;
-      padding: 20px;
+      padding: 10px;
       overflow-x: hidden;
       
       background-image: radial-gradient(2px 2px at 20px 30px, #eee, transparent),
@@ -68,15 +68,15 @@
     }
 
     .mail-envelope {
-      width: 120px;
-      height: 120px;
+      width: 100px;
+      height: 100px;
       background: linear-gradient(145deg, #2a2732, #1a1725);
       border: 3px solid #c9a44b;
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 60px;
+      font-size: 50px;
       box-shadow: 0 0 40px rgba(201, 164, 75, 0.4), 0 0 80px rgba(201, 164, 75, 0.2);
       animation: float 3s ease-in-out infinite;
       transition: transform 0.2s, box-shadow 0.2s;
@@ -89,13 +89,13 @@
 
     @keyframes float {
       0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-12px); }
+      50% { transform: translateY(-10px); }
     }
 
     .splash-text {
       color: #d4c098;
-      margin-top: 20px;
-      font-size: 16px;
+      margin-top: 16px;
+      font-size: 14px;
       letter-spacing: 2px;
       animation: pulse 2s ease-in-out infinite;
     }
@@ -136,6 +136,7 @@
     /* ========== LEFT SIDEBAR ========== */
     .sidebar {
       width: 280px;
+      min-width: 280px;
       background: linear-gradient(180deg, rgba(30, 32, 48, 0.95) 0%, rgba(22, 24, 38, 0.95) 100%);
       border-right: 1px solid rgba(200, 180, 120, 0.4);
       display: flex;
@@ -299,6 +300,7 @@
       background-repeat: no-repeat;
       background-position: center;
       overflow: hidden;
+      flex-shrink: 0;
     }
 
     /* This will be toggled on/off via JS to show image or star */
@@ -328,6 +330,7 @@
       text-transform: uppercase;
       letter-spacing: 1px;
       transition: all 0.2s;
+      white-space: nowrap;
     }
 
     .claim-btn:hover {
@@ -504,25 +507,180 @@
       filter: sepia(0.2) saturate(1.4);
     }
 
+    /* ========== RESPONSIVE - TABLET ========== */
     @media (max-width: 800px) {
       .mailbox {
         flex-direction: column;
         height: auto;
+        max-height: none;
       }
+      
       .sidebar {
         width: 100%;
-        height: 120px;
+        min-width: unset;
         flex-direction: row;
+        padding: 10px 0;
         overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
+      
+      .sidebar-header {
+        display: none;
+      }
+      
       .mail-item {
         flex-direction: column;
         text-align: center;
-        min-width: 100px;
+        min-width: 80px;
+        padding: 8px 10px;
+        border-left: none;
+        border-bottom: 3px solid transparent;
       }
+      
+      .mail-item.selected {
+        border-left: none;
+        border-bottom: 3px solid #d4b56c;
+      }
+      
+      .mail-icon {
+        margin-right: 0;
+        margin-bottom: 4px;
+        width: 28px;
+        height: 28px;
+        font-size: 14px;
+      }
+      
+      .mail-title {
+        font-size: 11px;
+      }
+      
+      .mail-sender {
+        font-size: 10px;
+      }
+      
       .mail-panel {
-        margin: 15px;
-        padding: 20px;
+        margin: 10px;
+        padding: 20px 15px;
+      }
+      
+      .subject {
+        font-size: 17px;
+      }
+      
+      .sender {
+        font-size: 14px;
+      }
+      
+      .letter-body {
+        font-size: 14px;
+      }
+      
+      .attachment-area {
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      
+      .attachment-text {
+        font-size: 12px;
+      }
+      
+      .claim-btn {
+        font-size: 14px;
+        padding: 8px 20px;
+      }
+    }
+
+    /* ========== RESPONSIVE - MOBILE ========== */
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+      
+      .mail-envelope {
+        width: 80px;
+        height: 80px;
+        font-size: 40px;
+      }
+      
+      .splash-text {
+        font-size: 12px;
+      }
+      
+      .sidebar {
+        padding: 5px 0;
+      }
+      
+      .mail-item {
+        min-width: 65px;
+        padding: 6px 6px;
+      }
+      
+      .mail-title {
+        font-size: 10px;
+        max-width: 60px;
+      }
+      
+      .mail-panel {
+        margin: 5px;
+        padding: 15px 12px;
+      }
+      
+      .subject {
+        font-size: 15px;
+      }
+      
+      .sender {
+        font-size: 13px;
+      }
+      
+      .date {
+        font-size: 10px;
+        margin-bottom: 12px;
+        padding-bottom: 8px;
+      }
+      
+      .letter-body {
+        font-size: 13px;
+        line-height: 1.4;
+      }
+      
+      .item-icon {
+        width: 40px;
+        height: 40px;
+      }
+      
+      .attachment-text {
+        font-size: 11px;
+      }
+      
+      .claim-btn {
+        font-size: 12px;
+        padding: 8px 16px;
+      }
+      
+      .modal-content {
+        width: 95%;
+      }
+      
+      .modal-panel {
+        padding: 15px 20px;
+      }
+      
+      .item-name {
+        font-size: 20px;
+      }
+      
+      .item-rarity {
+        font-size: 16px;
+      }
+      
+      .item-desc {
+        font-size: 12px;
+      }
+      
+      .reward-image {
+        max-width: 150px;
+        max-height: 120px;
       }
     }
   </style>
