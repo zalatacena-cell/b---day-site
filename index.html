@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>Genshin Mail - Nour</title>
+  <style>
+    /* ========== GLOBAL SETTINGS ========== */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0e101a;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      font-family: 'Georgia', 'Times New Roman', serif;
+      padding: 20px;
+      overflow-x: hidden;
+      
+      background-image: radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                        radial-gradient(2px 2px at 90px 40px, #fff, transparent),
+                        radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.6), transparent),
+                        radial-gradient(2px 2px at 200px 50px, #ddd, transparent),
+                        radial-gradient(2px 2px at 300px 80px, #fff, transparent),
+                        radial-gradient(2px 2px at 350px 20px, rgba(255,255,255,0.7), transparent),
+                        radial-gradient(2px 2px at 450px 110px, #eee, transparent),
+                        radial-gradient(2px 2px at 520px 30px, rgba(255,255,255,0.9), transparent);
+      background-size: 600px 200px;
+      animation: twinkle 4s infinite alternate;
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    /* ========== SPLASH SCREEN (Mail Icon) ========== */
+    .splash-screen {
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 200;
+      transition: opacity 0.5s ease, visibility 0.5s ease;
+      cursor: pointer;
+      background: #0e101a;
+      background-image: radial-gradient(2px 2px at 20px 30px, #eee, transparent),
+                        radial-gradient(2px 2px at 40px 70px, rgba(255,255,255,0.8), transparent),
+                        radial-gradient(2px 2px at 90px 40px, #fff, transparent),
+                        radial-gradient(2px 2px at 160px 120px, rgba(255,255,255,0.6), transparent),
+                        radial-gradient(2px 2px at 200px 50px, #ddd, transparent),
+                        radial-gradient(2px 2px at 300px 80px, #fff, transparent),
+                        radial-gradient(2px 2px at 350px 20px, rgba(255,255,255,0.7), transparent),
+                        radial-gradient(2px 2px at 450px 110px, #eee, transparent),
+                        radial-gradient(2px 2px at 520px 30px, rgba(255,255,255,0.9), transparent);
+      background-size: 600px 200px;
+      animation: twinkle 4s infinite alternate;
+    }
+
+    .splash-screen.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .mail-envelope {
+      width: 120px;
+      height: 120px;
+      background: linear-gradient(145deg, #2a2732, #1a1725);
+      border: 3px solid #c9a44b;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 60px;
+      box-shadow: 0 0 40px rgba(201, 164, 75, 0.4), 0 0 80px rgba(201, 164, 75, 0.2);
+      animation: float 3s ease-in-out infinite;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .mail-envelope:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 60px rgba(201, 164, 75, 0.6), 0 0 100px rgba(201, 164, 75, 0.3);
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px); }
+    }
+
+    .splash-text {
+      color: #d4c098;
+      margin-top: 20px;
+      font-size: 16px;
+      letter-spacing: 2px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* ========== MAIN MAILBOX (hidden initially) ========== */
+    .mailbox {
+      display: flex;
+      width: 950px;
+      max-width: 100%;
+      height: 650px;
+      max-height: 90vh;
+      background: rgba(20, 22, 35, 0.8);
+      backdrop-filter: blur(5px);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+      border: 1px solid rgba(200, 180, 120, 0.3);
+      opacity: 0;
+      transform: scale(0.92);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .mailbox.visible {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    /* ========== BACKGROUND AUDIO (hidden) ========== */
+    .bg-audio {
+      display: none;
+    }
+
+    /* ========== LEFT SIDEBAR ========== */
+    .sidebar {
+      width: 280px;
+      background: linear-gradient(180deg, rgba(30, 32, 48, 0.95) 0%, rgba(22, 24, 38, 0.95) 100%);
+      border-right: 1px solid rgba(200, 180, 120, 0.4);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 0;
+    }
+
+    .sidebar-header {
+      color: #d4c098;
+      font-size: 18px;
+      letter-spacing: 1px;
+      text-align: center;
+      padding: 10px;
+      border-bottom: 1px solid rgba(200, 180, 120, 0.3);
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+
+    .mail-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 20px;
+      cursor: pointer;
+      transition: background 0.2s;
+      color: #b0a58e;
+      border-left: 3px solid transparent;
+    }
+
+    .mail-item.selected {
+      background: rgba(255, 215, 150, 0.08);
+      border-left: 3px solid #d4b56c;
+      color: #f0e4c6;
+    }
+
+    .mail-item:hover {
+      background: rgba(255, 215, 150, 0.05);
+    }
+
+    .mail-icon {
+      width: 36px;
+      height: 36px;
+      background: #3a3f52;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      font-size: 18px;
+      color: #d4b56c;
+      flex-shrink: 0;
+    }
+
+    .mail-info {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .mail-title {
+      font-size: 14px;
+      font-weight: bold;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mail-sender {
+      font-size: 12px;
+      color: #8b8a7a;
+    }
+
+    /* ========== RIGHT MAIL PANEL ========== */
+    .mail-panel {
+      flex: 1;
+      background: #d9c8a3;
+      background-image: linear-gradient(135deg, #e2d2b0 0%, #cfbc8b 100%);
+      margin: 25px;
+      border-radius: 6px;
+      padding: 35px 40px;
+      box-shadow: inset 0 0 20px rgba(0,0,0,0.3), 0 4px 15px rgba(0,0,0,0.5);
+      border: 2px solid #b89b5c;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .mail-panel::before {
+      content: "";
+      position: absolute;
+      top: 10px; left: 15px; right: 15px; bottom: 10px;
+      border: 1px solid rgba(180, 140, 60, 0.4);
+      pointer-events: none;
+      border-radius: 3px;
+    }
+
+    .subject {
+      font-size: 20px;
+      font-weight: bold;
+      color: #3e2e1a;
+      margin-bottom: 8px;
+    }
+
+    .sender {
+      font-size: 16px;
+      color: #5a3e1a;
+      margin-bottom: 6px;
+      font-style: italic;
+    }
+
+    .date {
+      font-size: 12px;
+      color: #7a6a4e;
+      margin-bottom: 20px;
+      border-bottom: 1px dashed #bba670;
+      padding-bottom: 10px;
+    }
+
+    .letter-body {
+      flex: 1;
+      font-size: 16px;
+      line-height: 1.6;
+      color: #3b2e1a;
+      white-space: pre-line;
+      overflow-y: auto;
+    }
+
+    .attachment-area {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-top: 1px solid #b89b5c;
+      padding-top: 15px;
+    }
+
+    .attachment-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+
+    .attachment-info:hover {
+      transform: scale(1.02);
+    }
+
+    /* Main mail panel item icon (small) */
+    .item-icon {
+      width: 50px;
+      height: 50px;
+      background: radial-gradient(circle at 30% 30%, #f9e076, #b38b40);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: 2px solid #dbb042;
+      box-shadow: 0 0 12px rgba(218, 165, 32, 0.6);
+      position: relative;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center;
+      overflow: hidden;
+    }
+
+    /* This will be toggled on/off via JS to show image or star */
+    .item-icon.star-icon::after {
+      content: "✦";
+      font-size: 22px;
+      color: #4a3000;
+      text-shadow: 0 0 5px gold;
+    }
+
+    .attachment-text {
+      font-size: 14px;
+      color: #4a3720;
+      font-style: italic;
+    }
+
+    .claim-btn {
+      background: linear-gradient(180deg, #e6c468 0%, #b3882c 100%);
+      border: 1px solid #6e4f1a;
+      color: #2e1f04;
+      font-weight: bold;
+      font-size: 16px;
+      padding: 10px 32px;
+      border-radius: 4px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,200,0.6);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      transition: all 0.2s;
+    }
+
+    .claim-btn:hover {
+      background: linear-gradient(180deg, #f5de81 0%, #c99b2e 100%);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,220,0.7);
+    }
+
+    /* ========== POP-UP MODAL WITH TABS ========== */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 100;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #2a2732;
+      border: 2px solid #c9a44b;
+      border-radius: 8px;
+      width: 360px;
+      max-width: 90%;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+      animation: fadeIn 0.2s ease;
+      overflow: hidden;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Tab header inside the modal */
+    .modal-tabs {
+      display: flex;
+      border-bottom: 1px solid #c9a44b;
+    }
+
+    .modal-tab {
+      flex: 1;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      color: #9d8c70;
+      background: #1f1c2a;
+      transition: background 0.2s, color 0.2s;
+      font-weight: bold;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+    }
+
+    .modal-tab.active {
+      background: #2a2732;
+      color: #f5d98b;
+      border-bottom: 2px solid #c9a44b;
+    }
+
+    .modal-tab:hover {
+      color: #e0c87c;
+    }
+
+    .modal-panel {
+      padding: 25px 35px;
+      text-align: center;
+      display: none;
+    }
+
+    .modal-panel.active {
+      display: block;
+    }
+
+    /* Details panel */
+    .item-name {
+      font-size: 24px;
+      color: #f5d98b;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+
+    .item-rarity {
+      color: #c9a44b;
+      margin-bottom: 12px;
+      letter-spacing: 4px;
+      font-size: 20px;
+    }
+
+    /* Custom image in details */
+    .modal-item-image {
+      max-width: 120px;
+      max-height: 120px;
+      margin: 0 auto 15px;
+      display: block;
+      border-radius: 8px;
+      background: transparent;
+    }
+
+    /* Reward image styling */
+    .reward-image {
+      max-width: 200px;
+      max-height: 150px;
+      margin: 0 auto 15px;
+      display: block;
+      border-radius: 8px;
+      background: transparent;
+    }
+
+    /* Fallback star for modal icon */
+    .modal-star-fallback {
+      font-size: 50px;
+      color: #f5d98b;
+      margin-bottom: 15px;
+    }
+
+    .item-desc {
+      color: #b0a2c5;
+      font-size: 14px;
+      line-height: 1.5;
+      margin-bottom: 0;
+      font-style: italic;
+    }
+
+    /* Reward panel */
+    .reward-area {
+      min-height: 100px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #c9b87c;
+    }
+
+    .reward-text {
+      color: #b0a2c5;
+      margin-bottom: 8px;
+      font-size: 13px;
+      font-style: italic;
+    }
+
+    .collect-btn {
+      background: linear-gradient(180deg, #e6c468, #b3882c);
+      border: none;
+      padding: 12px 30px;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #2e1a00;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      transition: 0.2s;
+      margin-top: 15px;
+    }
+
+    .collect-btn:hover {
+      background: linear-gradient(180deg, #f7dc7a, #c99b2e);
+    }
+
+    .close-modal {
+      display: block;
+      margin-top: 0;
+      color: #9d8c70;
+      cursor: pointer;
+      text-decoration: underline;
+      font-size: 13px;
+      text-align: center;
+      padding: 10px 0 15px;
+    }
+
+    /* Audio player styling */
+    audio {
+      margin-top: 10px;
+      width: 100%;
+      filter: sepia(0.2) saturate(1.4);
+    }
+
+    @media (max-width: 800px) {
+      .mailbox {
+        flex-direction: column;
+        height: auto;
+      }
+      .sidebar {
+        width: 100%;
+        height: 120px;
+        flex-direction: row;
+        overflow-x: auto;
+      }
+      .mail-item {
+        flex-direction: column;
+        text-align: center;
+        min-width: 100px;
+      }
+      .mail-panel {
+        margin: 15px;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ========== SPLASH SCREEN ========== -->
+  <div class="splash-screen" id="splashScreen">
+    <div class="mail-envelope">✉️</div>
+    <div class="splash-text">You have unread mail</div>
+  </div>
+
+  <!-- ========== BACKGROUND AUDIO ========== -->
+  <audio class="bg-audio" id="bgMusic" loop>
+    <source src="https://files.catbox.moe/3c0h16.mp3" type="audio/mpeg">
+  </audio>
+
+  <!-- ========== MAIN MAILBOX ========== -->
+  <div class="mailbox" id="mailboxContainer">
+    <!-- Sidebar with interactive tabs -->
+    <div class="sidebar">
+      <div class="sidebar-header">Mail</div>
+      
+      <div class="mail-item selected" data-index="0">
+        <div class="mail-icon">🍜</div>
+        <div class="mail-info">
+          <div class="mail-title">Awesome Tery Ramen™</div>
+          <div class="mail-sender">Nour</div>
+        </div>
+      </div>
+      
+      <div class="mail-item" data-index="1">
+        <div class="mail-icon">🎂</div>
+        <div class="mail-info">
+          <div class="mail-title">Birthday Gateau</div>
+          <div class="mail-sender">Nour</div>
+        </div>
+      </div>
+      
+      <div class="mail-item" data-index="2">
+        <div class="mail-icon">📖</div>
+        <div class="mail-info">
+          <div class="mail-title">Magical Audio Book</div>
+          <div class="mail-sender">Nour</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main mail panel with dynamic content -->
+    <div class="mail-panel">
+      <div class="subject" id="mailSubject">The Day the Wind Brought a Friend</div>
+      <div class="sender" id="mailSender">Sender: Grandmaster Nour</div>
+      <div class="date" id="mailDate">Date: 2026-05-12 00:00</div>
+      
+      <div class="letter-body" id="mailBody">
+Comrade Tery,
+
+Another year marked on the calendar — another star charted on the adventurer's map of your life. Permit an old knight a moment to look back.
+
+I remember the day I wandered into your world. A stranger, chasing crystal chunks like any common mercenary, expecting to mine my ore and vanish into the void between servers. But the wind had other plans.
+
+We spoke. And spoke. And the conversation refused to dim with the setting sun.
+
+Here is the truth: I am a man who keeps his own counsel. I do not open my gates easily. Yet you — somehow, without siege or storm — you made me feel safe enough to lower the drawbridge, you walked through it like you had always belonged inside the walls. I have led expeditions across this continent and beyond, but I have rarely met a soul who made the world feel warmer simply by standing in it.
+
+That first day was not an accident of co-op. It was God's will, nudging two travelers toward a friendship neither expected but both needed.
+
+Continue your journey boldly, comrade. The path ahead is wide.
+
+— Grandmaster Nour
+      </div>
+      
+      <div class="attachment-area">
+        <div class="attachment-info" id="giftIcon">
+          <div class="item-icon star-icon" id="attachmentIcon"></div>
+          <span class="attachment-text" id="attachmentText">Attached: Awesome Tery Ramen™</span>
+        </div>
+        <button class="claim-btn" id="claimButton">Claim</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Pop-up Modal with Detail & Reward tabs -->
+  <div class="modal" id="giftModal">
+    <div class="modal-content">
+      <div class="modal-tabs">
+        <div class="modal-tab active" data-tab="detail">Details</div>
+        <div class="modal-tab" data-tab="reward">Reward</div>
+      </div>
+
+      <!-- Details Panel -->
+      <div class="modal-panel active" id="detailPanel">
+        <div class="item-name" id="modalItemName">Awesome Tery Ramen™</div>
+        <div class="item-rarity" id="modalItemRarity">★★★★★</div>
+        <!-- Dynamic image or star fallback -->
+        <img id="modalItemImage" class="modal-item-image" src="" alt="Item" style="display: none;">
+        <div id="modalStarFallback" class="modal-star-fallback">✦</div>
+        <div class="item-desc" id="modalItemDesc">
+          A dish so legendary, even the Raiden Shogun would pause her pursuit of eternity for a single bite.
+        </div>
+      </div>
+
+      <!-- Reward Panel -->
+      <div class="modal-panel" id="rewardPanel">
+        <div class="reward-area">
+          <p style="margin-bottom:8px; color:#b0a2c5;">Your gift awaits, Traveler.</p>
+          <div id="rewardContent">
+            <!-- Reward image, audio player, or button will be injected here dynamically -->
+            <button class="collect-btn" id="collectBtn">Collect</button>
+          </div>
+        </div>
+      </div>
+
+      <span class="close-modal" id="closeModal">Close</span>
+    </div>
+  </div>
+
+  <script>
+    // ---------- SPLASH SCREEN LOGIC ----------
+    const splashScreen = document.getElementById('splashScreen');
+    const mailboxContainer = document.getElementById('mailboxContainer');
+    const bgMusic = document.getElementById('bgMusic');
+
+    splashScreen.addEventListener('click', function() {
+      // Hide splash screen
+      splashScreen.classList.add('hidden');
+      
+      // Show mailbox with animation
+      mailboxContainer.classList.add('visible');
+      
+      // Load the first tab's gift icon immediately (FIX)
+      switchTab(0);
+      
+      // Start background music
+      bgMusic.volume = 0.2;
+      bgMusic.play().catch(function(err) {
+        // If browser still blocks, music will start on next user interaction
+        console.log('Audio play pending:', err);
+      });
+    });
+
+    // ---------- LETTER DATA ----------
+    const letters = [
+      { // Tab 1 - The Day the Wind Brought a Friend
+        subject: "The Day the Wind Brought a Friend",
+        sender: "Sender: Grandmaster Nour",
+        date: "Date: 2026-05-12 00:00",
+        attachmentText: "Attached: Awesome Tery Ramen™",
+        body: `Comrade Tery,
+
+Another year marked on the calendar — another star charted on the adventurer's map of your life. Permit an old knight a moment to look back.
+
+I remember the day I wandered into your world. A stranger, chasing crystal chunks like any common mercenary, expecting to mine my ore and vanish into the void between servers. But the wind had other plans.
+
+We spoke. And spoke. And the conversation refused to dim with the setting sun.
+
+Here is the truth: I am a man who keeps his own counsel. I do not open my gates easily. Yet you — somehow, without siege or storm — you made me feel safe enough to lower the drawbridge, you walked through it like you had always belonged inside the walls. I have led expeditions across this continent and beyond, but I have rarely met a soul who made the world feel warmer simply by standing in it.
+
+That first day was not an accident of co-op. It was God's will, nudging two travelers toward a friendship neither expected but both needed.
+
+Continue your journey boldly, comrade. The path ahead is wide.
+
+— Grandmaster Nour`,
+        gift: {
+          name: "Awesome Tery Ramen™",
+          rarity: "★★★★★",
+          desc: "A dish so legendary, even the Raiden Shogun would pause her pursuit of eternity for a single bite. Crafted by the Traveler known as Tery, this ramen does not merely warm the stomach — it stirs the soul. The broth, rich as a Liyue sunset, embraces tender noodles that coil like perfect strategy on a battlefield. Every ingredient placed with intention. Every spoonful a memory in the making. I have dined in the halls of Mondstadt and feasted in the floating pavilions of Liyue, yet no meal has ever felt quite like this — because no meal was ever made by you. A dish worthy of legends. A taste I will not forget.",
+          image: "https://i.imgur.com/QKjZWB0.png",
+          type: "button",
+          content: null,
+          rewardImage: "https://files.catbox.moe/o7x9qt.png",
+          rewardText: "This is one of my first tries to make Varka as pixel art, his face isn't like Varka so much xd so imagine he is Grandmaster Nour (God I wish I looked like that xdd)"
+        }
+      },
+      { // Tab 2 - Birthday Gateau
+        subject: "The Spinning Aster of Sweet Memories",
+        sender: "Sender: Grandmaster Nour",
+        date: "Date: 2026-05-12 12:00",
+        attachmentText: "Attached: Birthday Gateau",
+        body: `Tery,
+
+The Windwheel Aster never stops spinning — did you notice? It turns in the gentlest breeze, in the fiercest storm, in silence and in song. It reminds me of you.
+
+You came to me in my dreams more than once. In one, you were making me ketchup — and I liked it so much I asked you to make an entire batch. In another, I came to care for your dog and forgot to bring a toy and a new bag of food. Instead of scolding me, you pulled me close, hugged me, and told me to stop being so hard on myself. And in a third — my favorite — I went full Citlali on you, demanding you never speak ill of yourself again (recent dream).
+
+Those were dreams. But the Tery in them? No illusion. That was you. Exactly you. The same Tery who traveled this year and brought me along through every photograph, every story, every discovery. The same Tery who stood at her graduation and looked absolutely radiant — a knight completing her trial and stepping into legend.
+
+You have made me part of your world. That is a gift I do not take lightly.
+
+The Aster turns. The memories spin. And the melody only grows sweeter.
+
+— Grandmaster Nour`,
+        gift: {
+          name: "Birthday Gateau",
+          rarity: "★★★★★",
+          desc: "A one-of-a-kind celebratory cake, conjured into existence for a singular purpose: to honor the birth of the Traveler known as Tery. No two Birthday Gateaux are ever the same, for each is baked with the memories, laughter, and cherished moments shared between the giver and the recipient. This particular Gateau shimmers with a gentle golden glow, infused with the warmth of a friendship forged in co-op and tempered across timezones. When tasted, it is said to fill the heart with the echoes of every adventure yet to come. A dish that exists for one day, for one person — and for one reason alone: to remind you how deeply you are valued.",
+          image: "https://i.imgur.com/7eqQwFj.png",
+          type: "audio",
+          content: "https://files.catbox.moe/cvnch1.m4a",
+          rewardImage: "https://files.catbox.moe/zsfjrd.png",
+          rewardText: "Please listen to the voice from afar and stick to its plan..."
+        }
+      },
+      { // Tab 3 - Magical Audio Book
+        subject: "Onwards, to Glory and Friendship",
+        sender: "Sender: Grandmaster Nour",
+        date: "Date: 2026-05-12 18:00",
+        attachmentText: "Attached: Magical Audio Book",
+        body: `Comrade Tery,
+
+Liyue is a land of contracts and stone, of peaks that test the unworthy and valleys that reward the steadfast. I have climbed many of its mountains, and I tell you this: you would summit every single one.
+
+This year was no gentle expedition. Your final year of schooling — those are trials that would make even a seasoned knight catch their breath. I watched you from afar, across maps and timezones, and every time you sent word, you were still standing. Still fighting. Still moving forward. You took the hardest year of your academic career and faced it the way a Grand Master faces the Abyss: head-on, without retreat, without complaint.
+
+I have not said this enough: I am proud of you. Not the distant, polite kind of proud. The fierce, quiet kind that sits in a knight's chest when they watch a comrade grow into their full strength.
+
+And hear me well, Tery. When the road grows steep and your pack feels too heavy — you do not walk alone. I remain at your side. If you need a shield, a map, a fire in the dark, or simply a voice on the other end of a long night — you have me. That is not a promise made lightly. That is a contract, written in stone and sealed with the wind.
+
+The future stretches before us like an unexplored region. I intend to discover every corner of it with you as my ally, my confidant, and my dearest friend.
+
+Onwards. Together FOR GLORY AND HONOR and most importantly, for our sweet friendship.
+
+— Grandmaster Nour`,
+        gift: {
+          name: "Magical Audio Book",
+          rarity: "★★★★★",
+          desc: "A tome unlike any found in the libraries of Sumeru or the archives of Mondstadt. It holds no ink, no parchment, no written words at all — yet it speaks directly to the heart of the one meant to receive it. When opened by the Traveler known as Tery, the book's magic activates: a voice, preserved across time and distance, emerges from its pages. Each syllable a thread connecting two souls. The words within are specific, personal, unrepeatable — a record woven from shared memories, inside jokes, dreams both real and imagined, and the quiet comfort of knowing someone out there always has your back. Handle with care. Listen with your whole heart.",
+          image: "https://imgur.com/o0JNgQq.png",
+          type: "audio",
+          content: "https://files.catbox.moe/257yrh.m4a",
+          rewardImage: "https://files.catbox.moe/p0nfh1.png",
+          rewardText: "Its a pixel art image of you, I hope you enjoy it silly billy!"
+        }
+      }
+    ];
+
+    // Track current mail index
+    let currentMailIndex = 0;
+
+    // ---------- DOM ELEMENTS ----------
+    const tabs = document.querySelectorAll('.mail-item');
+    const subjectEl = document.getElementById('mailSubject');
+    const senderEl = document.getElementById('mailSender');
+    const dateEl = document.getElementById('mailDate');
+    const bodyEl = document.getElementById('mailBody');
+    const attachmentIcon = document.getElementById('attachmentIcon');
+    const attachmentText = document.getElementById('attachmentText');
+    
+    // Modal elements
+    const modal = document.getElementById('giftModal');
+    const detailPanel = document.getElementById('detailPanel');
+    const rewardPanel = document.getElementById('rewardPanel');
+    const modalItemName = document.getElementById('modalItemName');
+    const modalItemRarity = document.getElementById('modalItemRarity');
+    const modalItemDesc = document.getElementById('modalItemDesc');
+    const modalItemImage = document.getElementById('modalItemImage');
+    const modalStarFallback = document.getElementById('modalStarFallback');
+    const rewardContent = document.getElementById('rewardContent');
+    const modalTabs = document.querySelectorAll('.modal-tab');
+    const closeModalBtn = document.getElementById('closeModal');
+
+    // ---------- FUNCTIONS ----------
+    function switchTab(index) {
+      currentMailIndex = index;
+      // Update selected class on sidebar
+      tabs.forEach(tab => tab.classList.remove('selected'));
+      tabs[index].classList.add('selected');
+
+      // Update mail content
+      const letter = letters[index];
+      subjectEl.textContent = letter.subject;
+      senderEl.textContent = letter.sender;
+      dateEl.textContent = letter.date;
+      bodyEl.textContent = letter.body;
+      attachmentText.textContent = letter.attachmentText;
+
+      // Update attachment icon for main panel
+      if (letter.gift.image) {
+        // Show custom image, hide star
+        attachmentIcon.style.backgroundImage = `url('${letter.gift.image}')`;
+        attachmentIcon.style.backgroundColor = 'transparent';
+        attachmentIcon.classList.remove('star-icon');
+      } else {
+        // Show star, hide image
+        attachmentIcon.style.backgroundImage = 'none';
+        attachmentIcon.style.backgroundColor = ''; // resets to CSS default
+        attachmentIcon.classList.add('star-icon');
+      }
+    }
+
+    function updateModalForCurrentGift() {
+      const gift = letters[currentMailIndex].gift;
+
+      // Set details panel content
+      modalItemName.textContent = gift.name;
+      modalItemRarity.textContent = gift.rarity;
+      modalItemDesc.textContent = gift.desc;
+
+      // Handle image vs star in modal
+      if (gift.image) {
+        modalItemImage.src = gift.image;
+        modalItemImage.style.display = 'block';
+        modalStarFallback.style.display = 'none';
+      } else {
+        modalItemImage.style.display = 'none';
+        modalStarFallback.style.display = 'block';
+      }
+
+      // Build reward content based on gift type
+      let rewardHTML = '';
+      
+      // Add reward image if present — clicking opens in new tab
+      if (gift.rewardImage) {
+        rewardHTML += `<a href="${gift.rewardImage}" target="_blank"><img src="${gift.rewardImage}" alt="Reward" class="reward-image" style="cursor:pointer;"></a>`;
+        if (gift.rewardText) {
+          rewardHTML += `<p class="reward-text">${gift.rewardText}</p>`;
+        }
+      }
+
+      if (gift.type === "audio") {
+        rewardHTML += `
+          <p style="color:#b0a2c5; margin-bottom:8px;">A voice from afar...</p>
+          <audio controls src="${gift.content}"></audio>
+        `;
+      } else {
+        // Default button
+        rewardHTML += `<button class="collect-btn" id="collectBtn">Open in New Tab</button>`;
+      }
+
+      rewardContent.innerHTML = rewardHTML;
+
+      // Re-bind collect event if button exists
+      if (gift.type === "button") {
+        const newCollectBtn = document.getElementById('collectBtn');
+        if (newCollectBtn) {
+          newCollectBtn.addEventListener('click', function() {
+            if (gift.rewardImage) {
+              window.open(gift.rewardImage, '_blank');
+            }
+            closeModalFunc();
+          });
+        }
+      }
+    }
+
+    function openModal() {
+      updateModalForCurrentGift();
+      // Always open to Details tab first
+      switchModalTab('detail');
+      modal.style.display = 'flex';
+    }
+
+    function closeModalFunc() {
+      modal.style.display = 'none';
+    }
+
+    function switchModalTab(tabName) {
+      // Update tab active states
+      modalTabs.forEach(tab => {
+        if (tab.getAttribute('data-tab') === tabName) {
+          tab.classList.add('active');
+        } else {
+          tab.classList.remove('active');
+        }
+      });
+      // Show/hide panels
+      if (tabName === 'detail') {
+        detailPanel.classList.add('active');
+        rewardPanel.classList.remove('active');
+      } else {
+        detailPanel.classList.remove('active');
+        rewardPanel.classList.add('active');
+      }
+    }
+
+    // ---------- EVENT LISTENERS ----------
+    // Sidebar tab clicks
+    tabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const index = parseInt(this.getAttribute('data-index'));
+        if (!isNaN(index) && index >= 0 && index < letters.length) {
+          switchTab(index);
+        }
+      });
+    });
+
+    // Open modal from attachment icon or claim button
+    document.getElementById('giftIcon').addEventListener('click', openModal);
+    document.getElementById('claimButton').addEventListener('click', openModal);
+
+    // Modal tab clicks
+    modalTabs.forEach(tab => {
+      tab.addEventListener('click', function() {
+        const tabName = this.getAttribute('data-tab');
+        switchModalTab(tabName);
+      });
+    });
+
+    // Close modal
+    closeModalBtn.addEventListener('click', closeModalFunc);
+    window.addEventListener('click', function(event) {
+      if (event.target === modal) {
+        closeModalFunc();
+      }
+    });
+  </script>
+</body>
+</html>
